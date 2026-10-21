@@ -58,3 +58,25 @@ class TestLireJournal(unittest.TestCase):
     def test_journal_ligne_trop_courte(self):
         with self.assertRaises(ValueError):
             extraction.lire_journal("2026-11-27 17:00:00 paiement ERROR", 1)
+
+
+class TestLireScan(unittest.TestCase):
+    def test_lire_scan(self):
+        sig = extraction.lire_scan(SCAN, 9)
+        self.assertEqual(sig.ref, "SH-0009")
+        self.assertEqual(sig.origine, "SCANNER")
+        self.assertEqual(sig.service, "lib-panier")
+        self.assertEqual(sig.categorie, "FAILLE")
+        self.assertEqual(sig.gravite, "BLOQUANT")
+        self.assertEqual(sig.texte, "Faille CVE-2026-7788 dans lib-panier")
+
+    def test_gravites_scan(self):
+        attendu = {"HAUT": "MAJEUR", "moyen": "MODERE", "faible": "MINEUR"}
+        for risque, gravite in attendu.items():
+            with self.subTest(risque=risque):
+                sig = extraction.lire_scan({**SCAN, "risque": risque}, 1)
+                self.assertEqual(sig.gravite, gravite)
+
+    def test_scan_cle_manquante(self):
+        with self.assertRaises(ValueError):
+            extraction.lire_scan({"paquet": "lib-panier"}, 1)

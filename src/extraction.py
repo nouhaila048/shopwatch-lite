@@ -38,3 +38,30 @@ def lire_journal(ligne: str, numero: int, origine: str = "PAIEMENT",
         gravite=GRAVITE_JOURNAL.get(niveau.upper(), "MINEUR"),
         texte=masquer_donnees(message),
     )
+
+
+GRAVITE_SCAN = {
+    "critique": "BLOQUANT",
+    "haut": "MAJEUR",
+    "moyen": "MODERE",
+}
+
+
+def _verifier_cles(rapport: dict, cles: list) -> None:
+    for cle in cles:
+        if cle not in rapport:
+            raise ValueError(f"Cle manquante dans le rapport : {cle}")
+
+
+def lire_scan(rapport: dict, numero: int, env: str = "production") -> Signal:
+    _verifier_cles(rapport, ["id_faille", "paquet", "risque", "date"])
+    return Signal(
+        ref=f"SH-{numero:04d}",
+        date=rapport["date"],
+        origine="SCANNER",
+        service=rapport["paquet"],
+        env=env,
+        categorie="FAILLE",
+        gravite=GRAVITE_SCAN.get(rapport["risque"].lower(), "MINEUR"),
+        texte=f"Faille {rapport['id_faille']} dans {rapport['paquet']}",
+    )
