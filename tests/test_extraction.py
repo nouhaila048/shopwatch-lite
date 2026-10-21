@@ -31,3 +31,30 @@ class TestExtraction(unittest.TestCase):
     def test_texte_sans_secret_inchange(self):
         self.assertEqual(extraction.masquer_donnees("Service demarre"),
                          "Service demarre")
+
+
+class TestLireJournal(unittest.TestCase):
+    def test_lire_journal(self):
+        sig = extraction.lire_journal(LIGNE, 42)
+        self.assertEqual(sig.ref, "SH-0042")
+        self.assertEqual(sig.date, "2026-11-27T17:02:11Z")
+        self.assertEqual(sig.service, "paiement")
+        self.assertEqual(sig.categorie, "JOURNAL")
+        self.assertEqual(sig.origine, "PAIEMENT")
+        self.assertEqual(sig.env, "production")
+        self.assertEqual(sig.gravite, "MAJEUR")
+        self.assertNotIn("4970123412341234", sig.texte)
+
+    def test_gravites_journal(self):
+        base = "2026-11-27 17:00:00 paiement {} message"
+        attendu = {"FATAL": "BLOQUANT", "critical": "BLOQUANT",
+                   "ERROR": "MAJEUR", "warn": "MODERE",
+                   "WARNING": "MODERE", "INFO": "MINEUR"}
+        for niveau, gravite in attendu.items():
+            with self.subTest(niveau=niveau):
+                sig = extraction.lire_journal(base.format(niveau), 1)
+                self.assertEqual(sig.gravite, gravite)
+
+    def test_journal_ligne_trop_courte(self):
+        with self.assertRaises(ValueError):
+            extraction.lire_journal("2026-11-27 17:00:00 paiement ERROR", 1)
