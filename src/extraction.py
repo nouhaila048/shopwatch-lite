@@ -10,7 +10,25 @@ MOTIF_SENSIBLE = re.compile(
 
 
 def masquer_donnees(texte: str) -> str:
-    return MOTIF_SENSIBLE.sub(r"\1\2[MASQUE]", texte)
+    noms = r"password|pwd|token|secret|card|iban"
+    motif = rf"\b({noms})(\s*[:=]\s*)([^\s&,;]+)"
+
+    resultat = re.sub(
+        motif,
+        lambda m: f"{m.group(1)}{m.group(2)}[MASQUE]",
+        texte,
+        flags=re.IGNORECASE
+    )
+
+    resultat = re.sub(
+        r"(\bBearer\s+)[^\s&,;]+",
+        r"\1[MASQUE]",
+        resultat,
+        flags=re.IGNORECASE
+    )
+
+    return resultat
+
 
 
 GRAVITE_JOURNAL = {
