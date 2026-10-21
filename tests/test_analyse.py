@@ -68,7 +68,106 @@ class TestAnalyse(unittest.TestCase):
         self.assertEqual(compter_incidents(s1, compteur), 0)
         self.assertEqual(compter_incidents(s2, compteur), 0)
         self.assertEqual(compteur, {})
+    def test_chercher_fiches(self):
+        s = sig(texte="TIMEOUT sur la passerelle")
 
+        resultats = chercher_fiches(s, FICHES)
+
+        self.assertEqual(
+            resultats,
+            [FICHES["timeout"]]
+        )
+
+    def test_chercher_plusieurs_fiches(self):
+        s = sig(texte="timeout et build en echec")
+
+        resultats = chercher_fiches(s, FICHES)
+
+        self.assertEqual(
+            resultats,
+            [FICHES["timeout"], FICHES["build"]]
+        )
+
+    def test_aucune_fiche(self):
+        s = sig(texte="probleme inconnu")
+
+        self.assertEqual(
+            chercher_fiches(s, FICHES),
+            []
+        )
+
+    def test_evaluer_panne_en_boucle(self):
+        s = sig()
+
+        self.assertEqual(evaluer(s, 4), "BLOQUANT")
+        self.assertEqual(evaluer(s, 3), "MAJEUR")
+
+    def test_diagnostiquer_bloquant(self):
+        s = sig()
+
+        diagnostic = diagnostiquer(s, FICHES, 4)
+
+        self.assertEqual(diagnostic.signal_ref, "SH-0001")
+        self.assertEqual(diagnostic.niveau, "BLOQUANT")
+        self.assertEqual(
+            diagnostic.cause,
+            FICHES["timeout"]
+        )
+        self.assertEqual(
+            diagnostic.action,
+            "Isoler le service paiement"
+        )
+        self.assertTrue(diagnostic.critique)
+        self.assertEqual(diagnostic.origines, ["PAIEMENT"])
+        self.assertEqual(s.etat, "EVALUE")
+
+    def test_diagnostiquer_faille(self):
+        s = sig(
+            categorie="FAILLE",
+            gravite="BLOQUANT",
+            texte="faille detectee",
+            service="lib-panier"
+        )
+
+        diagnostic = diagnostiquer(s, FICHES)
+
+        self.assertEqual(
+            diagnostic.action,
+            "Corriger la dependance lib-panier"
+        )
+        self.assertFalse(diagnostic.critique)
+        self.assertEqual(s.etat, "EVALUE")
+
+    def test_diagnostiquer_build(self):
+        s = sig(
+            categorie="BUILD_ECHEC",
+            gravite="MAJEUR",
+            texte="build en echec",
+            service="deploiement"
+        )
+
+        diagnostic = diagnostiquer(s, FICHES)
+
+        self.assertEqual(
+            diagnostic.action,
+            "Rejouer le build deploiement"
+        )
+        self.assertFalse(diagnostic.critique)
+
+    def test_diagnostiquer_inconnu(self):
+        s = sig(
+            gravite="MINEUR",
+            texte="probleme inconnu"
+        )
+
+        diagnostic = diagnostiquer(s, FICHES)
+
+        self.assertEqual(
+            diagnostic.cause,
+            "Cause inconnue : verification manuelle"
+        )
+        self.assertEqual(diagnostic.action, "Observer")
+        self.assertFalse(diagnostic.critique)
 
 if __name__ == "__main__":
     unittest.main()
