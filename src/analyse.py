@@ -39,7 +39,7 @@ def chercher_fiches(sig: Signal, base: dict) -> list:
 
 
 def evaluer(sig: Signal, nb_incidents: int = 0) -> str:
-    if nb_incidents > 100:
+    if nb_incidents >= 4:
         return "BLOQUANT"
 
     return sig.gravite
