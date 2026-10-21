@@ -1,7 +1,8 @@
 # Changelog
 
 ## [Non publie]
-- Agent Extraction : lecture et normalisation des signaux (A)
+- Agent Extraction : masquage et normalisation des signaux (A)
+- Agent Analyse : filtrage, comptage et evaluation des signaux (B)
 
 ## [0.1.0]
 - Squelette du projet : contrat, agents vides, workflow, demo.
