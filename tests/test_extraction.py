@@ -80,3 +80,22 @@ class TestLireScan(unittest.TestCase):
     def test_scan_cle_manquante(self):
         with self.assertRaises(ValueError):
             extraction.lire_scan({"paquet": "lib-panier"}, 1)
+
+
+class TestLireBuild(unittest.TestCase):
+    def test_lire_build_echec(self):
+        sig = extraction.lire_build(BUILD, 8)
+        self.assertEqual(sig.origine, "BUILD")
+        self.assertEqual(sig.service, "deploiement")
+        self.assertEqual(sig.categorie, "BUILD_ECHEC")
+        self.assertEqual(sig.gravite, "MAJEUR")
+        self.assertEqual(sig.texte, "Build deploiement : echec")
+
+    def test_lire_build_ok(self):
+        sig = extraction.lire_build({**BUILD, "resultat": "succes"}, 8)
+        self.assertEqual(sig.categorie, "BUILD_OK")
+        self.assertEqual(sig.gravite, "MINEUR")
+
+    def test_build_cle_manquante(self):
+        with self.assertRaises(ValueError):
+            extraction.lire_build({"etape": "test"}, 1)

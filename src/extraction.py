@@ -65,3 +65,18 @@ def lire_scan(rapport: dict, numero: int, env: str = "production") -> Signal:
         gravite=GRAVITE_SCAN.get(rapport["risque"].lower(), "MINEUR"),
         texte=f"Faille {rapport['id_faille']} dans {rapport['paquet']}",
     )
+
+
+def lire_build(rapport: dict, numero: int, env: str = "production") -> Signal:
+    _verifier_cles(rapport, ["etape", "resultat", "date"])
+    echec = rapport["resultat"].lower() == "echec"
+    return Signal(
+        ref=f"SH-{numero:04d}",
+        date=rapport["date"],
+        origine="BUILD",
+        service=rapport["etape"],
+        env=env,
+        categorie="BUILD_ECHEC" if echec else "BUILD_OK",
+        gravite="MAJEUR" if echec else "MINEUR",
+        texte=f"Build {rapport['etape']} : {rapport['resultat']}",
+    )
