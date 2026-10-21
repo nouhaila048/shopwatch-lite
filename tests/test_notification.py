@@ -1,7 +1,7 @@
 import unittest
 
 from src.contrat import Diagnostic, Signal
-from src.notification import choisir_canal, composer, diffuser,approuver
+from src.notification import choisir_canal, composer, diffuser,approuver,consigner
 
 def exemple(critique=True, niveau="BLOQUANT"):
     s = Signal("SH-0125", "2026-11-27T17:02:11Z", "PAIEMENT", "paiement",
@@ -59,6 +59,19 @@ class TestNotification(unittest.TestCase):
     def test_approbation_non_critique(self):
         _, d = exemple(critique=False, niveau="MINEUR")
         self.assertTrue(approuver(d, "n"))
+
+    def test_consigner(self):
+        _, d = exemple()
+        carnet = []
+        entree = consigner(d, True, "astreinte-shop", carnet, "2026-11-27T17:10:00Z")
+        self.assertEqual(entree, {
+            "ref": "SH-0125",
+            "action": "Isoler le service paiement",
+            "accord": True,
+            "responsable": "astreinte-shop",
+            "instant": "2026-11-27T17:10:00Z",
+        })
+        self.assertEqual(carnet, [entree])
 
 if __name__ == "__main__":
     unittest.main()
