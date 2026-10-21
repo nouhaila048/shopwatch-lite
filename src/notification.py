@@ -25,7 +25,15 @@ def composer(sig: Signal, diag: Diagnostic) -> str:
 
 
 def diffuser(sig: Signal, diag: Diagnostic, registre: list) -> Message:
-    raise NotImplementedError
+    msg = Message(
+        signal_ref=sig.ref,
+        canal=choisir_canal(diag.niveau),
+        destinataire="astreinte-shop",
+        contenu=composer(sig, diag),
+    )
+    registre.append(msg)
+    sig.etat = "DIFFUSE"
+    return msg
 
 
 def approuver(diag: Diagnostic, reponse: str) -> bool:
