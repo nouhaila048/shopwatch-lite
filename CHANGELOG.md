@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Non publie]
+- Agent Extraction : masquage et normalisation des signaux (A)
 - Agent Analyse : filtrage, comptage et evaluation des signaux (B)
 
 ## [0.1.0]
